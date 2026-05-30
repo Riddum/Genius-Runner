@@ -351,8 +351,8 @@ async def main():
         # ── MODE 1: Refresh / collect answers ────────────────────────────────
         if mode == "1":
             print(f"\n  Currently {len(quiz_cache)} answers cached for today.")
-            raw = input("  How many probe attempts to run? (default 30): ").strip()
-            num_runs = int(raw) if raw.isdigit() else 30
+            raw = input("  How many probe attempts to run? (default 200): ").strip()
+            num_runs = int(raw) if raw.isdigit() else 200
             raw = input("  Concurrency (default 4, max 8): ").strip()
             concurrency = min(8, int(raw) if raw.isdigit() else 4)
 
