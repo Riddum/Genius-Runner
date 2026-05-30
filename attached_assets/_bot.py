@@ -1,0 +1,294 @@
+"""
+Telegram bot interface for the India Genius Challenge automation.
+
+Commands:
+  /start   — show help
+  /status  — today's cache count
+  /collect [n]         — run n probes to refresh answer bank (default 50)
+  /generate [n] [speed]— generate n perfect anon IDs  (speed 1=<30s, 2=<50s)
+"""
+import asyncio
+import os
+import sys
+import time
+
+# Run from this script's directory so relative paths (cache files) work
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import (
+    Application, CommandHandler, CallbackQueryHandler, ContextTypes
+)
+from telegram.constants import ParseMode
+
+from genius_1780164377809 import (
+    load_cache, save_cache, generate_attempt, validate_answer,
+    run_probe_attempt, QUIZ_KEY, aiohttp, random
+)
+
+TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
+
+SPEED_PROFILES = {
+    "1": {"label": "⚡ Under 30s (~22s avg)", "lo": 0.8,  "hi": 1.5},
+    "2": {"label": "🐢 Under 50s (~38s avg)", "lo": 2.0,  "hi": 3.2},
+}
+
+# ─── Helpers ──────────────────────────────────────────────────────────────────
+
+def cache_status():
+    cache = load_cache()
+    count = len(cache.get(QUIZ_KEY, {}))
+    return count, QUIZ_KEY
+
+async def gap_fill(session, quiz_cache, question_meta, ref_questions):
+    """Quickly fill any uncached questions in today's draw."""
+    missing = [q for q in ref_questions if q["_id"] not in quiz_cache]
+    if not missing:
+        return 0
+    tried = {}
+    sem   = asyncio.Semaphore(3)
+    for run in range(8):
+        still = [q for q in ref_questions if q["_id"] not in quiz_cache]
+        if not still:
+            break
+        await run_probe_attempt(session, quiz_cache, question_meta, tried, sem, run)
+    return len([q for q in ref_questions if q["_id"] not in quiz_cache])
+
+async def create_perfect_attempt(session, quiz_cache, lo, hi):
+    attempt_id, questions, anon_cookie = await generate_attempt(session)
+    if not attempt_id:
+        return None, None
+    total_time = 0.0
+    for i, q in enumerate(questions):
+        is_last = (i == len(questions) - 1)
+        answer  = quiz_cache.get(q["_id"]) or q["options"][0]
+        t       = round(random.uniform(lo, hi), 2)
+        total_time += t
+        await validate_answer(
+            session, {}, attempt_id, q, answer, t,
+            total_time_used=round(total_time, 2) if is_last else None,
+        )
+        await asyncio.sleep(t)
+    return anon_cookie, round(total_time, 1)
+
+# ─── Command handlers ─────────────────────────────────────────────────────────
+
+async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    count, key = cache_status()
+    await update.message.reply_text(
+        f"*India Genius Challenge Bot* 🎯\n\n"
+        f"Answer bank today: *{count} questions* cached (`{key}`)\n\n"
+        f"*Commands:*\n"
+        f"`/status` — show cache count\n"
+        f"`/collect [n]` — refresh answer bank (default 50 probes)\n"
+        f"`/generate [n] [speed]` — create perfect anon IDs\n"
+        f"  • speed `1` = under 30s (default)\n"
+        f"  • speed `2` = under 50s\n\n"
+        f"_Example:_ `/generate 5 1`",
+        parse_mode=ParseMode.MARKDOWN
+    )
+
+async def cmd_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    count, key = cache_status()
+    await update.message.reply_text(
+        f"📊 *Answer bank status*\n\n"
+        f"Quiz key: `{key}`\n"
+        f"Cached answers: *{count}*",
+        parse_mode=ParseMode.MARKDOWN
+    )
+
+async def cmd_collect(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    args = context.args
+    n = 50
+    if args and args[0].isdigit():
+        n = max(1, min(500, int(args[0])))
+
+    count, _ = cache_status()
+    msg = await update.message.reply_text(
+        f"🔍 *Collecting answers* — {n} probes at concurrency 4\n"
+        f"Starting with {count} cached...\n\n"
+        f"⏳ Progress: 0/{n}",
+        parse_mode=ParseMode.MARKDOWN
+    )
+
+    connector = aiohttp.TCPConnector(limit=100, force_close=False, enable_cleanup_closed=True)
+    async with aiohttp.ClientSession(connector=connector) as session:
+        cache         = load_cache()
+        quiz_cache    = dict(cache.get(QUIZ_KEY, {}))
+        question_meta = dict(cache.get("question_meta", {}))
+        tried_options = {}
+        sem           = asyncio.Semaphore(4)
+
+        completed = 0
+        last_edit = time.time()
+
+        tasks = [
+            run_probe_attempt(session, quiz_cache, question_meta, tried_options, sem, i)
+            for i in range(n)
+        ]
+
+        for coro in asyncio.as_completed(tasks):
+            await coro
+            completed += 1
+            now = time.time()
+            # Edit message every 10 probes or every 15 seconds
+            if completed % 10 == 0 or completed == n or (now - last_edit) > 15:
+                pct  = completed * 100 // n
+                bars = "█" * (pct // 5) + "░" * (20 - pct // 5)
+                try:
+                    await msg.edit_text(
+                        f"🔍 *Collecting answers* — {n} probes\n"
+                        f"[{bars}] {completed}/{n}\n"
+                        f"Answers cached: *{len(quiz_cache)}*",
+                        parse_mode=ParseMode.MARKDOWN
+                    )
+                    last_edit = now
+                except Exception:
+                    pass
+
+        # Save
+        cache[QUIZ_KEY]        = quiz_cache
+        cache["question_meta"] = question_meta
+        save_cache(cache)
+
+        await msg.edit_text(
+            f"✅ *Collection complete!*\n\n"
+            f"Probes run: {n}\n"
+            f"Total answers cached: *{len(quiz_cache)}*\n\n"
+            f"Use `/generate` to create perfect anon IDs.",
+            parse_mode=ParseMode.MARKDOWN
+        )
+
+async def cmd_generate(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    args = context.args
+
+    # Parse n and speed from args
+    n     = 3
+    speed = "1"
+
+    if len(args) >= 1 and args[0].isdigit():
+        n = max(1, min(20, int(args[0])))
+    if len(args) >= 2 and args[1] in SPEED_PROFILES:
+        speed = args[1]
+
+    # If no speed given, show inline keyboard
+    if len(args) < 2:
+        keyboard = [
+            [
+                InlineKeyboardButton("⚡ Under 30s", callback_data=f"gen:{n}:1"),
+                InlineKeyboardButton("🐢 Under 50s", callback_data=f"gen:{n}:2"),
+            ]
+        ]
+        await update.message.reply_text(
+            f"Generate *{n}* perfect anon ID(s). Choose speed:",
+            reply_markup=InlineKeyboardMarkup(keyboard),
+            parse_mode=ParseMode.MARKDOWN
+        )
+        return
+
+    await _run_generate(update.message, n, speed)
+
+async def callback_generate(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    _, n_str, speed = query.data.split(":")
+    n = int(n_str)
+    await query.edit_message_text(
+        f"Generating *{n}* ID(s) — {SPEED_PROFILES[speed]['label']}...",
+        parse_mode=ParseMode.MARKDOWN
+    )
+    await _run_generate(query.message, n, speed, editing=True)
+
+async def _run_generate(message, n: int, speed: str, editing=False):
+    profile = SPEED_PROFILES.get(speed, SPEED_PROFILES["1"])
+    lo, hi  = profile["lo"], profile["hi"]
+
+    count, _ = cache_status()
+    if count == 0:
+        await message.reply_text(
+            "❌ No answers cached. Run `/collect` first.",
+            parse_mode=ParseMode.MARKDOWN
+        )
+        return
+
+    status_msg = await message.reply_text(
+        f"🎯 *Generating {n} perfect anon ID(s)*\n"
+        f"{profile['label']}\n\n"
+        f"⏳ 0/{n} done...",
+        parse_mode=ParseMode.MARKDOWN
+    )
+
+    connector = aiohttp.TCPConnector(limit=100, force_close=False, enable_cleanup_closed=True)
+    async with aiohttp.ClientSession(connector=connector) as session:
+        cache         = load_cache()
+        quiz_cache    = dict(cache.get(QUIZ_KEY, {}))
+        question_meta = dict(cache.get("question_meta", {}))
+
+        # Gap fill if needed
+        _, ref_questions, _ = await generate_attempt(session)
+        if ref_questions:
+            missing = await gap_fill(session, quiz_cache, question_meta, ref_questions)
+            if missing:
+                await status_msg.edit_text(
+                    f"🎯 *Generating {n} perfect anon ID(s)*\n"
+                    f"{profile['label']}\n\n"
+                    f"⚠️ {missing} question(s) still uncached (will use first option)\n"
+                    f"⏳ 0/{n} done...",
+                    parse_mode=ParseMode.MARKDOWN
+                )
+
+        anon_ids  = []
+        tries     = 0
+        max_tries = n * 4
+
+        while len(anon_ids) < n and tries < max_tries:
+            tries += 1
+            aid, elapsed = await create_perfect_attempt(session, quiz_cache, lo, hi)
+            if aid:
+                anon_ids.append((aid, elapsed))
+                lines = "\n".join(f"`{a}`  _{e}s_" for a, e in anon_ids)
+                try:
+                    await status_msg.edit_text(
+                        f"🎯 *Generating {n} perfect anon ID(s)*\n"
+                        f"{profile['label']}\n\n"
+                        f"✅ {len(anon_ids)}/{n} done\n\n"
+                        f"{lines}",
+                        parse_mode=ParseMode.MARKDOWN
+                    )
+                except Exception:
+                    pass
+            else:
+                await asyncio.sleep(2)
+
+        # Final message
+        if not anon_ids:
+            await status_msg.edit_text("❌ All attempts failed. Check server connectivity.")
+            return
+
+        ids_oneliner = " ".join(a for a, _ in anon_ids)
+        lines        = "\n".join(f"`{a}`  _{e}s_" for a, e in anon_ids)
+
+        await status_msg.edit_text(
+            f"✅ *{len(anon_ids)} perfect anon ID(s) ready!*\n\n"
+            f"{lines}\n\n"
+            f"*One-liner to paste into \\[3\\] Manual link:*\n"
+            f"`{ids_oneliner}`",
+            parse_mode=ParseMode.MARKDOWN
+        )
+
+# ─── Main ─────────────────────────────────────────────────────────────────────
+
+def main():
+    app = Application.builder().token(TOKEN).build()
+    app.add_handler(CommandHandler("start",    cmd_start))
+    app.add_handler(CommandHandler("help",     cmd_start))
+    app.add_handler(CommandHandler("status",   cmd_status))
+    app.add_handler(CommandHandler("collect",  cmd_collect))
+    app.add_handler(CommandHandler("generate", cmd_generate))
+    app.add_handler(CallbackQueryHandler(callback_generate, pattern=r"^gen:"))
+    print("Bot started — polling...")
+    app.run_polling(drop_pending_updates=True)
+
+if __name__ == "__main__":
+    main()
