@@ -2,22 +2,9 @@ import asyncio
 import aiohttp
 import json
 import time
+import os
 
 BASE_URL = "https://www.indiageniuschallenge.com/api"
-
-# Three different anon_attempt_id (one per request)
-ANON_IDS = [
-    "6a1b21b6e0861040e20e7e96",   # second ID
-    "6a1b223ffe0013c544a3622a",   # third ID
-    "6a1b163b72c73c8e938703be",   # first ID
-]
-
-# Cookie files for each request (same account, can be same file copied three times)
-COOKIE_FILES = [
-    "cookies_account1.json",
-    "cookies_account2.json",
-    "cookies_account3.json",
-]
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -31,10 +18,17 @@ def load_cookies(file_path):
         cookie_list = json.load(f)
     return {c['name']: c['value'] for c in cookie_list if 'name' in c and 'value' in c}
 
+def save_cookies(file_path, raw_text):
+    data = json.loads(raw_text)
+    with open(file_path, 'w') as f:
+        json.dump(data, f, indent=2)
+    print(f"✅ Cookies saved to {file_path}")
+
 async def send_request(session, cookies, anon_id, req_id):
-    cookies['anon_attempt_id'] = anon_id
+    c = dict(cookies)
+    c['anon_attempt_id'] = anon_id
     send_time = time.perf_counter()
-    async with session.get(f"{BASE_URL}/attempt/linkAnon", headers=HEADERS, cookies=cookies) as resp:
+    async with session.get(f"{BASE_URL}/attempt/linkAnon", headers=HEADERS, cookies=c) as resp:
         recv_time = time.perf_counter()
         text = await resp.text()
         print(f"Req{req_id}: sent at {send_time:.6f}, recv at {recv_time:.6f}, status {resp.status}")
@@ -42,11 +36,49 @@ async def send_request(session, cookies, anon_id, req_id):
         return resp.status
 
 async def main():
-    print("🚀 Preparing 3 requests to fire simultaneously...")
-    all_cookies = [load_cookies(cf) for cf in COOKIE_FILES]
+    print("=== India Genius Challenge — Simultaneous Request Sender ===\n")
+
+    # --- Cookie setup ---
+    nickname = input("Enter a nickname for your cookie file (e.g. myaccount): ").strip()
+    cookie_file = f"{nickname}.json"
+
+    if os.path.exists(cookie_file):
+        print(f"✅ Found existing cookie file: {cookie_file}")
+        use_existing = input("Use it? (y/n): ").strip().lower()
+        if use_existing != 'y':
+            os.remove(cookie_file)
+
+    if not os.path.exists(cookie_file):
+        print("\nPaste your cookie JSON below (from EditThisCookie or browser export).")
+        print("Press Enter twice when done:\n")
+        lines = []
+        while True:
+            line = input()
+            if line == "" and lines and lines[-1] == "":
+                break
+            lines.append(line)
+        raw = "\n".join(lines).strip()
+        save_cookies(cookie_file, raw)
+
+    cookies = load_cookies(cookie_file)
+    print(f"Loaded {len(cookies)} cookies.\n")
+
+    # --- Anon IDs ---
+    print("Enter anon_attempt_id values one per line (press Enter on an empty line when done):")
+    anon_ids = []
+    while True:
+        val = input(f"  Anon ID #{len(anon_ids)+1} (or blank to finish): ").strip()
+        if val == "":
+            if len(anon_ids) == 0:
+                print("  ⚠️  Please enter at least one ID.")
+                continue
+            break
+        anon_ids.append(val)
+
+    print(f"\n🚀 Preparing {len(anon_ids)} requests to fire simultaneously...")
     connector = aiohttp.TCPConnector(limit=0)
     async with aiohttp.ClientSession(connector=connector) as session:
-        tasks = [send_request(session, all_cookies[i], ANON_IDS[i], i+1) for i in range(3)]
+        tasks = [send_request(session, cookies, anon_ids[i], i+1) for i in range(len(anon_ids))]
         print("Firing all requests simultaneously...")
         start = time.perf_counter()
         results = await asyncio.gather(*tasks)
