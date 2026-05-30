@@ -64,16 +64,16 @@ async def main():
     print(f"Loaded {len(cookies)} cookies.\n")
 
     # --- Anon IDs ---
-    print("Enter anon_attempt_id values one per line (press Enter on an empty line when done):")
-    anon_ids = []
     while True:
-        val = input(f"  Anon ID #{len(anon_ids)+1} (or blank to finish): ").strip()
-        if val == "":
-            if len(anon_ids) == 0:
-                print("  ⚠️  Please enter at least one ID.")
-                continue
-            break
-        anon_ids.append(val)
+        raw_ids = input("Paste anon_attempt_id values separated by spaces (max 3): ").strip()
+        anon_ids = raw_ids.split()
+        if len(anon_ids) == 0:
+            print("  ⚠️  Please enter at least one ID.")
+            continue
+        if len(anon_ids) > 3:
+            print(f"  ⚠️  Too many IDs ({len(anon_ids)}). Max is 3. Please try again.")
+            continue
+        break
 
     print(f"\n🚀 Preparing {len(anon_ids)} requests to fire simultaneously...")
     connector = aiohttp.TCPConnector(limit=0)
