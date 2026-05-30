@@ -1,0 +1,422 @@
+[
+  {
+    "question_id": "68eddb05e496d06d1f48f9a3",
+    "question": "A man walks 40 m South, turns right 30 m, left 20 m, then left 30 m. How far is he from the start and in which direction?",
+    "type": "text",
+    "category": "Direction Sense",
+    "difficulty": "hard",
+    "options": [
+      "60 m, South",
+      "60 m, North",
+      "70 m, North",
+      "70 m, South"
+    ],
+    "correct_answer": "60 m, South"
+  },
+  {
+    "question_id": "68edd73ae496d06d1f48c58a",
+    "question": "A mountain-hike group can pack one extra emergency item. Which covers the widest range of unknowns?",
+    "type": "text",
+    "category": "Decision-Making Scenarios",
+    "difficulty": "medium",
+    "options": [
+      "Compact first-aid kit",
+      "Portable espresso maker",
+      "Phone ring light",
+      "Inflatable couch"
+    ],
+    "correct_answer": "Compact first-aid kit"
+  },
+  {
+    "question_id": "68eddb2be496d06d1f48ff56",
+    "question": "A popular campaign wants to ban certain books in the library. What is the most advanced civic approach?",
+    "type": "text",
+    "category": "Social Awareness & Perspective",
+    "difficulty": "medium",
+    "options": [
+      "Propose review committees with diverse representation to review books",
+      "Support the ban with no discussion",
+      "Call for banning more books",
+      "Ignore the issue"
+    ],
+    "correct_answer": "Propose review committees with diverse representation to review books"
+  },
+  {
+    "question_id": "68edd741e496d06d1f48c6a7",
+    "question": "A wildlife refuge has budget for a single new invasive-species barrier. Which protects biodiversity hotspots with the fewest downstream costs?",
+    "type": "text",
+    "category": "Decision-Making Scenarios",
+    "difficulty": "hard",
+    "options": [
+      "Mesh fence blocking feral pigs at river mouth",
+      "Decorative gift shop aquarium cover",
+      "Statue that scares pigeons in parking lot",
+      "Painted crosswalk for turtles far inland"
+    ],
+    "correct_answer": "Mesh fence blocking feral pigs at river mouth"
+  },
+  {
+    "question_id": "68eddaf3e496d06d1f48f71c",
+    "question": "Facing South and moving left, you head?",
+    "type": "text",
+    "category": "Direction Sense",
+    "difficulty": "easy",
+    "options": [
+      "East",
+      "North",
+      "West",
+      "South"
+    ],
+    "correct_answer": "East"
+  },
+  {
+    "question_id": "68edda21e496d06d1f48d7a7",
+    "question": "Four fruits ranked by sweetness: Mango>Apple>Guava>Papaya. Which is least sweet?",
+    "type": "text",
+    "category": "Analytical Reasoning",
+    "difficulty": "easy",
+    "options": [
+      "Papaya",
+      "Guava",
+      "Apple",
+      "Mango"
+    ],
+    "correct_answer": "Papaya"
+  },
+  {
+    "question_id": "68edd6d3e496d06d1f48b590",
+    "question": "Headline: “Local High School Adds Financial-Literacy Requirement.”  Students will now…",
+    "type": "text",
+    "category": "Civic & Real-Life Reasoning",
+    "difficulty": "easy",
+    "options": [
+      "Take a class on money skills",
+      "Pay extra tuition",
+      "Sell stock certificates",
+      "Receive cash bonuses"
+    ],
+    "correct_answer": "Take a class on money skills"
+  },
+  {
+    "question_id": "68edda7de496d06d1f48e58e",
+    "question": "Identify the software that is NOT by Microsoft.",
+    "type": "text",
+    "category": "Verbal Reasoning",
+    "difficulty": "easy",
+    "options": [
+      "Word",
+      "Excel",
+      "PowerPoint",
+      "Photoshop"
+    ],
+    "correct_answer": "Photoshop"
+  },
+  {
+    "question_id": "69b494b689ea13abddc489c8",
+    "question": "Identify the sport using this dragon boat paddle.",
+    "type": "questionImage",
+    "category": "Recognise the Sport",
+    "difficulty": "hard",
+    "options": [
+      "Dragon Boat Racing",
+      "Canoeing",
+      "Kayaking",
+      "Rowing"
+    ],
+    "correct_answer": "Dragon Boat Racing"
+  },
+  {
+    "question_id": "68edda2ee496d06d1f48d9ba",
+    "question": "If 1st from left=20th from right, total?",
+    "type": "text",
+    "category": "Analytical Reasoning",
+    "difficulty": "medium",
+    "options": [
+      "20",
+      "21",
+      "19",
+      "22"
+    ],
+    "correct_answer": "20"
+  },
+  {
+    "question_id": "68edd76be496d06d1f48cd1f",
+    "question": "Medha’s cousin is Asha. Asha’s father is Ramesh. Who is Ramesh to Medha?",
+    "type": "text",
+    "category": "Analytical Reasoning",
+    "difficulty": "easy",
+    "options": [
+      "Uncle",
+      "Father",
+      "Cousin",
+      "Grandfather"
+    ],
+    "correct_answer": "Uncle"
+  },
+  {
+    "question_id": "68edd6dce496d06d1f48b707",
+    "question": "News: “nation approves telemedicine for rural mental-health services.” Key advantage?",
+    "type": "text",
+    "category": "Civic & Real-Life Reasoning",
+    "difficulty": "medium",
+    "options": [
+      "Remote consultations overcome distance barriers",
+      "Cheaper sports shoes",
+      "Faster pizza delivery",
+      "Wider highways"
+    ],
+    "correct_answer": "Remote consultations overcome distance barriers"
+  },
+  {
+    "question_id": "68eddafbe496d06d1f48f835",
+    "question": "On school sports day, race starts facing West. Podium is right. Podium points which direction?",
+    "type": "text",
+    "category": "Direction Sense",
+    "difficulty": "medium",
+    "options": [
+      "North",
+      "East",
+      "West",
+      "South"
+    ],
+    "correct_answer": "North"
+  },
+  {
+    "question_id": "68edda33e496d06d1f48da83",
+    "question": "Seats=54, 22nd seat from left = from right?",
+    "type": "text",
+    "category": "Analytical Reasoning",
+    "difficulty": "hard",
+    "options": [
+      "33",
+      "32",
+      "34",
+      "35"
+    ],
+    "correct_answer": "33"
+  },
+  {
+    "question_id": "68edda82e496d06d1f48e648",
+    "question": "Select the odd material. (Three are magnetic under normal conditions.)",
+    "type": "text",
+    "category": "Verbal Reasoning",
+    "difficulty": "medium",
+    "options": [
+      "Iron",
+      "Nickel",
+      "Cobalt",
+      "Aluminum"
+    ],
+    "correct_answer": "Aluminum"
+  },
+  {
+    "question_id": "68edda52e496d06d1f48df16",
+    "question": "Series: BCDA, FGHE, JKLI, ?",
+    "type": "text",
+    "category": "Pattern Recognition",
+    "difficulty": "hard",
+    "options": [
+      "NOPM",
+      "PQOM",
+      "OMPM",
+      "PMON"
+    ],
+    "correct_answer": "NOPM"
+  },
+  {
+    "question_id": "68edda4ae496d06d1f48dded",
+    "question": "Series: N, Q, T, W, ?",
+    "type": "text",
+    "category": "Pattern Recognition",
+    "difficulty": "easy",
+    "options": [
+      "Z",
+      "B",
+      "A",
+      "C"
+    ],
+    "correct_answer": "Z"
+  },
+  {
+    "question_id": "68edd706e496d06d1f48bd67",
+    "question": "What data type is MOST likely considered “sensitive personal data” under many privacy laws?",
+    "type": "text",
+    "category": "Social Awareness & Perspective",
+    "difficulty": "medium",
+    "options": [
+      "Biometric face points",
+      "Favorite pizza topping",
+      "Preferred font",
+      "Browser theme"
+    ],
+    "correct_answer": "Biometric face points"
+  },
+  {
+    "question_id": "68edd56de496d06d1f487d1c",
+    "question": "What is a floodplain?",
+    "type": "text",
+    "category": "Geography & Environment",
+    "difficulty": "easy",
+    "options": [
+      "Playground",
+      "Flat land near river",
+      "Mountain peak",
+      "Sand dune"
+    ],
+    "correct_answer": "Flat land near river"
+  },
+  {
+    "question_id": "68edda50e496d06d1f48ded4",
+    "question": "What is next? YZAB, DEFG, IJKL, NOPQ, ?",
+    "type": "text",
+    "category": "Pattern Recognition",
+    "difficulty": "medium",
+    "options": [
+      "STUV",
+      "UVWX",
+      "WXYZ",
+      "ABCD"
+    ],
+    "correct_answer": "STUV"
+  },
+  {
+    "question_id": "68edd6c0e496d06d1f48b2c1",
+    "question": "What is the major source of all energy on Earth?",
+    "type": "text",
+    "category": "NCERT-Based Topics",
+    "difficulty": "medium",
+    "options": [
+      "Sun",
+      "Electricity",
+      "Coal",
+      "Wind"
+    ],
+    "correct_answer": "Sun"
+  },
+  {
+    "question_id": "69b4949c89ea13abddc489c7",
+    "question": "What sport uses this large goalie mask?",
+    "type": "questionImage",
+    "category": "Recognise the Sport",
+    "difficulty": "medium",
+    "options": [
+      "Ice Hockey",
+      "Lacrosse",
+      "Goalball",
+      "Water Polo"
+    ],
+    "correct_answer": "Ice Hockey"
+  },
+  {
+    "question_id": "68fe37c928b2b52ab163a4e0",
+    "question": "Which Indian animal is this?",
+    "type": "questionImage",
+    "category": "Identify the Animal",
+    "difficulty": "easy",
+    "options": [
+      "Sloth Bear",
+      "Panda",
+      "Badger",
+      "Mongoose"
+    ],
+    "correct_answer": "Sloth Bear"
+  },
+  {
+    "question_id": "68edd6cce496d06d1f48b491",
+    "question": "Which factor influences the India's monsoon pattern the most?",
+    "type": "text",
+    "category": "NCERT-Based Topics",
+    "difficulty": "hard",
+    "options": [
+      "The differential heating of land and ocean",
+      "Volcanic eruptions",
+      "Earthquakes",
+      "Solar flares"
+    ],
+    "correct_answer": "The differential heating of land and ocean"
+  },
+  {
+    "question_id": "68edd702e496d06d1f48bcd4",
+    "question": "Which is more private story reaction?",
+    "type": "text",
+    "category": "Social Awareness & Perspective",
+    "difficulty": "easy",
+    "options": [
+      "Sending emoji via DM instead of public comment",
+      "Public comment with full name",
+      "Print reaction on T-shirt",
+      "Shout in hallway"
+    ],
+    "correct_answer": "Sending emoji via DM instead of public comment"
+  },
+  {
+    "question_id": "68fe379928b2b52ab163a4dc",
+    "question": "Which reptile do you see?",
+    "type": "questionImage",
+    "category": "Identify the Animal",
+    "difficulty": "easy",
+    "options": [
+      "Crocodile",
+      "Alligator",
+      "Snake",
+      "Lizard"
+    ],
+    "correct_answer": "Crocodile"
+  },
+  {
+    "question_id": "69b4932689ea13abddc489ba",
+    "question": "Which sport features this large circular throwing ring?",
+    "type": "questionImage",
+    "category": "Recognise the Sport",
+    "difficulty": "medium",
+    "options": [
+      "Discus Throw",
+      "Hammer Throw",
+      "Shot Put",
+      "Javelin"
+    ],
+    "correct_answer": "Discus Throw"
+  },
+  {
+    "question_id": "68edd4f6e496d06d1f48699e",
+    "question": "Why do submarines rise or sink in water?",
+    "type": "text",
+    "category": "Science & Technology",
+    "difficulty": "medium",
+    "options": [
+      "They breathe water",
+      "Their propellers turn",
+      "Water fills or empties ballast tanks",
+      "Pressure changes"
+    ],
+    "correct_answer": "Water fills or empties ballast tanks"
+  },
+  {
+    "question_id": "68edd4efe496d06d1f486872",
+    "question": "Why do we see our reflection in a mirror but not in a wall?",
+    "type": "text",
+    "category": "Science & Technology",
+    "difficulty": "easy",
+    "options": [
+      "Walls are too smooth",
+      "Mirrors are shiny and reflect light clearly",
+      "Walls absorb colour",
+      "Mirrors are see-through"
+    ],
+    "correct_answer": "Mirrors are shiny and reflect light clearly"
+  },
+  {
+    "question_id": "68edd6b3e496d06d1f48b0b1",
+    "question": "Why is the Rann of Kutch one of the most extreme places in India?",
+    "type": "text",
+    "category": "NCERT-Based Topics",
+    "difficulty": "easy",
+    "options": [
+      "It’s always wet",
+      "It’s a massive salt marsh",
+      "It’s cold desert",
+      "It’s a tropical forest"
+    ],
+    "correct_answer": "It’s a massive salt marsh"
+  }
+]

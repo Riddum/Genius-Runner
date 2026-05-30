@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "3wy9Aw-gbvvdL06cZghGK"
+uri = "file://attached_assets/correct_answers_today.json"
+type = "unspecified"
+title = "Correct Answers — Today's Quiz (30 questions)"

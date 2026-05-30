@@ -1,0 +1,660 @@
+{
+  "daily_2026-05-30": {
+    "68edd4efe496d06d1f486872": "Mirrors are shiny and reflect light clearly",
+    "68edd56de496d06d1f487d1c": "Flat land near river",
+    "69b4932689ea13abddc489ba": "Discus Throw",
+    "69b494b689ea13abddc489c8": "Dragon Boat Racing",
+    "68edd6cce496d06d1f48b491": "The differential heating of land and ocean",
+    "68edd4f6e496d06d1f48699e": "Water fills or empties ballast tanks",
+    "68edd6b3e496d06d1f48b0b1": "It\u2019s a massive salt marsh",
+    "69b4949c89ea13abddc489c7": "Ice Hockey",
+    "68fe37c928b2b52ab163a4e0": "Sloth Bear",
+    "68fe379928b2b52ab163a4dc": "Crocodile",
+    "68edd706e496d06d1f48bd67": "Biometric face points",
+    "68edda2ee496d06d1f48d9ba": "20",
+    "68edd702e496d06d1f48bcd4": "Sending emoji via DM instead of public comment",
+    "68edd6dce496d06d1f48b707": "Remote consultations overcome distance barriers",
+    "68edd73ae496d06d1f48c58a": "Compact first-aid kit",
+    "68edda52e496d06d1f48df16": "NOPM",
+    "68edda33e496d06d1f48da83": "33",
+    "68edda7de496d06d1f48e58e": "Photoshop",
+    "68edd76be496d06d1f48cd1f": "Uncle",
+    "68edda21e496d06d1f48d7a7": "Papaya",
+    "68edda50e496d06d1f48ded4": "STUV",
+    "68eddb05e496d06d1f48f9a3": "60 m, South",
+    "68edda4ae496d06d1f48dded": "Z",
+    "68eddb2be496d06d1f48ff56": "Propose review committees with diverse representation to review books",
+    "68edd6c0e496d06d1f48b2c1": "Sun",
+    "68edd6d3e496d06d1f48b590": "Take a class on money skills",
+    "68edda82e496d06d1f48e648": "Aluminum",
+    "68eddaf3e496d06d1f48f71c": "East",
+    "68edd741e496d06d1f48c6a7": "Mesh fence blocking feral pigs at river mouth",
+    "68eddafbe496d06d1f48f835": "North"
+  },
+  "question_meta": {
+    "68edd6b3e496d06d1f48b0b1": {
+      "question": "Why is the Rann of Kutch one of the most extreme places in India?",
+      "options": [
+        "It\u2019s always wet",
+        "It\u2019s a massive salt marsh",
+        "It\u2019s cold desert",
+        "It\u2019s a tropical forest"
+      ],
+      "category": "NCERT-Based Topics",
+      "difficulty": "easy",
+      "type": "text"
+    },
+    "68edd4efe496d06d1f486872": {
+      "question": "Why do we see our reflection in a mirror but not in a wall?",
+      "options": [
+        "Walls are too smooth",
+        "Mirrors are shiny and reflect light clearly",
+        "Walls absorb colour",
+        "Mirrors are see-through"
+      ],
+      "category": "Science & Technology",
+      "difficulty": "easy",
+      "type": "text"
+    },
+    "68edd56de496d06d1f487d1c": {
+      "question": "What is a floodplain?",
+      "options": [
+        "Playground",
+        "Flat land near river",
+        "Mountain peak",
+        "Sand dune"
+      ],
+      "category": "Geography & Environment",
+      "difficulty": "easy",
+      "type": "text"
+    },
+    "68edd6b2e496d06d1f48b08d": {
+      "question": "The Ranganthittu Bird Sanctuary blooms with what giant wildlife\u2014unusual nearby?",
+      "options": [
+        "Crocodiles",
+        "Migrating pelicans",
+        "Otters",
+        "Rhinoceros"
+      ],
+      "category": "NCERT-Based Topics",
+      "difficulty": "easy",
+      "type": "text"
+    },
+    "69b494b689ea13abddc489c8": {
+      "question": "Identify the sport using this dragon boat paddle.",
+      "options": [
+        "Dragon Boat Racing",
+        "Canoeing",
+        "Kayaking",
+        "Rowing"
+      ],
+      "category": "Recognise the Sport",
+      "difficulty": "hard",
+      "type": "questionImage"
+    },
+    "69b4932689ea13abddc489ba": {
+      "question": "Which sport features this large circular throwing ring?",
+      "options": [
+        "Discus Throw",
+        "Hammer Throw",
+        "Shot Put",
+        "Javelin"
+      ],
+      "category": "Recognise the Sport",
+      "difficulty": "medium",
+      "type": "questionImage"
+    },
+    "69b4949c89ea13abddc489c7": {
+      "question": "What sport uses this large goalie mask?",
+      "options": [
+        "Ice Hockey",
+        "Lacrosse",
+        "Goalball",
+        "Water Polo"
+      ],
+      "category": "Recognise the Sport",
+      "difficulty": "medium",
+      "type": "questionImage"
+    },
+    "68fe37c928b2b52ab163a4e0": {
+      "question": "Which Indian animal is this?",
+      "options": [
+        "Sloth Bear",
+        "Panda",
+        "Badger",
+        "Mongoose"
+      ],
+      "category": "Identify the Animal",
+      "difficulty": "easy",
+      "type": "questionImage"
+    },
+    "68fe37b728b2b52ab163a4de": {
+      "question": "Identify the amphibian.",
+      "options": [
+        "Lizard",
+        "Frog",
+        "Toad",
+        "Salamander"
+      ],
+      "category": "Identify the Animal",
+      "difficulty": "easy",
+      "type": "questionImage"
+    },
+    "68edd576e496d06d1f487e96": {
+      "question": "Overuse of groundwater during drought leads to?",
+      "options": [
+        "Floods",
+        "Heatwave",
+        "Land subsidence",
+        "Sandstorm"
+      ],
+      "category": "Geography & Environment",
+      "difficulty": "medium",
+      "type": "text"
+    },
+    "68edd73ae496d06d1f48c58a": {
+      "question": "A mountain-hike group can pack one extra emergency item. Which covers the widest range of unknowns?",
+      "options": [
+        "Compact first-aid kit",
+        "Portable espresso maker",
+        "Phone ring light",
+        "Inflatable couch"
+      ],
+      "category": "Decision-Making Scenarios",
+      "difficulty": "medium",
+      "type": "text"
+    },
+    "68fe379928b2b52ab163a4dc": {
+      "question": "Which reptile do you see?",
+      "options": [
+        "Crocodile",
+        "Alligator",
+        "Snake",
+        "Lizard"
+      ],
+      "category": "Identify the Animal",
+      "difficulty": "easy",
+      "type": "questionImage"
+    },
+    "68edda82e496d06d1f48e648": {
+      "question": "Select the odd material. (Three are magnetic under normal conditions.)",
+      "options": [
+        "Iron",
+        "Nickel",
+        "Cobalt",
+        "Aluminum"
+      ],
+      "category": "Verbal Reasoning",
+      "difficulty": "medium",
+      "type": "text"
+    },
+    "68edda7de496d06d1f48e58e": {
+      "question": "Identify the software that is NOT by Microsoft.",
+      "options": [
+        "Word",
+        "Excel",
+        "PowerPoint",
+        "Photoshop"
+      ],
+      "category": "Verbal Reasoning",
+      "difficulty": "easy",
+      "type": "text"
+    },
+    "68edd788e496d06d1f48d17e": {
+      "question": "If Sandhya is married to Rajesh and Rajesh\u2019s mother is Leela, what is Leela\u2019s relation to Sandhya?",
+      "options": [
+        "Mother-in-law",
+        "Aunt",
+        "Grandmother",
+        "Cousin"
+      ],
+      "category": "Analytical Reasoning",
+      "difficulty": "medium",
+      "type": "text"
+    },
+    "68edda21e496d06d1f48d7a7": {
+      "question": "Four fruits ranked by sweetness: Mango>Apple>Guava>Papaya. Which is least sweet?",
+      "options": [
+        "Papaya",
+        "Guava",
+        "Apple",
+        "Mango"
+      ],
+      "category": "Analytical Reasoning",
+      "difficulty": "easy",
+      "type": "text"
+    },
+    "68edd702e496d06d1f48bcd4": {
+      "question": "Which is more private story reaction?",
+      "options": [
+        "Sending emoji via DM instead of public comment",
+        "Public comment with full name",
+        "Print reaction on T-shirt",
+        "Shout in hallway"
+      ],
+      "category": "Social Awareness & Perspective",
+      "difficulty": "easy",
+      "type": "text"
+    },
+    "68eddafbe496d06d1f48f835": {
+      "question": "On school sports day, race starts facing West. Podium is right. Podium points which direction?",
+      "options": [
+        "North",
+        "East",
+        "West",
+        "South"
+      ],
+      "category": "Direction Sense",
+      "difficulty": "medium",
+      "type": "text"
+    },
+    "68edd6dce496d06d1f48b6f5": {
+      "question": "A sports-biz piece: \u201cteam sells naming rights to stadium for $700 M.\u201d What changes?",
+      "options": [
+        "Stadium will display sponsor\u2019s name in branding",
+        "Players change uniforms to pajamas",
+        "Concessions give free candy",
+        "Referees wear capes"
+      ],
+      "category": "Civic & Real-Life Reasoning",
+      "difficulty": "medium",
+      "type": "text"
+    },
+    "68edda50e496d06d1f48ded4": {
+      "question": "What is next? YZAB, DEFG, IJKL, NOPQ, ?",
+      "options": [
+        "STUV",
+        "UVWX",
+        "WXYZ",
+        "ABCD"
+      ],
+      "category": "Pattern Recognition",
+      "difficulty": "medium",
+      "type": "text"
+    },
+    "68edda52e496d06d1f48df16": {
+      "question": "Series: BCDA, FGHE, JKLI, ?",
+      "options": [
+        "NOPM",
+        "PQOM",
+        "OMPM",
+        "PMON"
+      ],
+      "category": "Pattern Recognition",
+      "difficulty": "hard",
+      "type": "text"
+    },
+    "68eddaf3e496d06d1f48f71c": {
+      "question": "Facing South and moving left, you head?",
+      "options": [
+        "East",
+        "North",
+        "West",
+        "South"
+      ],
+      "category": "Direction Sense",
+      "difficulty": "easy",
+      "type": "text"
+    },
+    "68eddb19e496d06d1f48fca1": {
+      "question": "How does helping with household chores teach responsibility?",
+      "options": [
+        "It shows care and helps family",
+        "Reduces relationships",
+        "Wastes time",
+        "Only adults do it"
+      ],
+      "category": "Social Awareness & Perspective",
+      "difficulty": "easy",
+      "type": "text"
+    },
+    "68edd6c5e496d06d1f48b38d": {
+      "question": "The \u201cScotland of the East\u201d also hosts what percent of its land under forest cover?",
+      "options": [
+        "70%",
+        "30%",
+        "50%",
+        "90%"
+      ],
+      "category": "NCERT-Based Topics",
+      "difficulty": "hard",
+      "type": "text"
+    },
+    "68edd4f6e496d06d1f48699e": {
+      "question": "Why do submarines rise or sink in water?",
+      "options": [
+        "They breathe water",
+        "Their propellers turn",
+        "Water fills or empties ballast tanks",
+        "Pressure changes"
+      ],
+      "category": "Science & Technology",
+      "difficulty": "medium",
+      "type": "text"
+    },
+    "68edd6cce496d06d1f48b491": {
+      "question": "Which factor influences the India's monsoon pattern the most?",
+      "options": [
+        "The differential heating of land and ocean",
+        "Volcanic eruptions",
+        "Earthquakes",
+        "Solar flares"
+      ],
+      "category": "NCERT-Based Topics",
+      "difficulty": "hard",
+      "type": "text"
+    },
+    "68edda2ee496d06d1f48d9ba": {
+      "question": "If 1st from left=20th from right, total?",
+      "options": [
+        "20",
+        "21",
+        "19",
+        "22"
+      ],
+      "category": "Analytical Reasoning",
+      "difficulty": "medium",
+      "type": "text"
+    },
+    "68eddb0ee496d06d1f48faf6": {
+      "question": "How can you show respect for national symbols?",
+      "options": [
+        "Destroy them",
+        "Pollute them",
+        "Keep them safe",
+        "Take them home"
+      ],
+      "category": "Social Awareness & Perspective",
+      "difficulty": "easy",
+      "type": "text"
+    },
+    "68edd6c2e496d06d1f48b30f": {
+      "question": "How is 'alluvial soil' formed?",
+      "options": [
+        "By river deposits",
+        "Through volcanic ash",
+        "By wind erosion",
+        "By glacier movement"
+      ],
+      "category": "NCERT-Based Topics",
+      "difficulty": "medium",
+      "type": "text"
+    },
+    "68edd6e8e496d06d1f48b8e1": {
+      "question": "How does turning off electronics at night help?",
+      "options": [
+        "It increases wear",
+        "It saves energy",
+        "It breaks device",
+        "It overheats home"
+      ],
+      "category": "Social Awareness & Perspective",
+      "difficulty": "easy",
+      "type": "text"
+    },
+    "68edd6cfe496d06d1f48b500": {
+      "question": "Headline: \u201cResearchers Link Blue-Light Exposure to Sleep Disruption.\u201d  This suggests teens might reduce blue light by\u2026",
+      "options": [
+        "Using phone night-mode before bed",
+        "Taking louder music breaks",
+        "Eating more snacks",
+        "Running before sleeping"
+      ],
+      "category": "Civic & Real-Life Reasoning",
+      "difficulty": "easy",
+      "type": "text"
+    },
+    "68edd6bee496d06d1f48b267": {
+      "question": "Which natural resource is India the second largest producer of worldwide?",
+      "options": [
+        "Coal",
+        "Fish",
+        "Mica",
+        "Iron Ore"
+      ],
+      "category": "NCERT-Based Topics",
+      "difficulty": "medium",
+      "type": "text"
+    },
+    "68edda26e496d06d1f48d885": {
+      "question": "Arranged by distance run: Mohan>Ravi>Salim>Amar, 2nd shortest distance?",
+      "options": [
+        "Salim",
+        "Ravi",
+        "Amar",
+        "Mohan"
+      ],
+      "category": "Analytical Reasoning",
+      "difficulty": "easy",
+      "type": "text"
+    },
+    "68edd6f4e496d06d1f48bab2": {
+      "question": "A data center wastes heat energy. What to do?",
+      "options": [
+        "Ignore heat",
+        "Use heat recovery for local district heating + co-location + efficiency upgrades",
+        "Add AC only",
+        "Release heat to river"
+      ],
+      "category": "Social Awareness & Perspective",
+      "difficulty": "medium",
+      "type": "text"
+    },
+    "68edda4ae496d06d1f48dded": {
+      "question": "Series: N, Q, T, W, ?",
+      "options": [
+        "Z",
+        "B",
+        "A",
+        "C"
+      ],
+      "category": "Pattern Recognition",
+      "difficulty": "easy",
+      "type": "text"
+    },
+    "68edd6d3e496d06d1f48b590": {
+      "question": "Headline: \u201cLocal High School Adds Financial-Literacy Requirement.\u201d  Students will now\u2026",
+      "options": [
+        "Take a class on money skills",
+        "Pay extra tuition",
+        "Sell stock certificates",
+        "Receive cash bonuses"
+      ],
+      "category": "Civic & Real-Life Reasoning",
+      "difficulty": "easy",
+      "type": "text"
+    },
+    "68edda33e496d06d1f48da83": {
+      "question": "Seats=54, 22nd seat from left = from right?",
+      "options": [
+        "33",
+        "32",
+        "34",
+        "35"
+      ],
+      "category": "Analytical Reasoning",
+      "difficulty": "hard",
+      "type": "text"
+    },
+    "68eddb2fe496d06d1f48ffe6": {
+      "question": "Why is it important that elections are fair and independent agencies supervise them?",
+      "options": [
+        "To let winners take all",
+        "To strengthen legitimacy, citizen trust, reduce fraud and abuse",
+        "To delay results",
+        "To increase chaos"
+      ],
+      "category": "Social Awareness & Perspective",
+      "difficulty": "hard",
+      "type": "text"
+    },
+    "68edd741e496d06d1f48c6a7": {
+      "question": "A wildlife refuge has budget for a single new invasive-species barrier. Which protects biodiversity hotspots with the fewest downstream costs?",
+      "options": [
+        "Mesh fence blocking feral pigs at river mouth",
+        "Decorative gift shop aquarium cover",
+        "Statue that scares pigeons in parking lot",
+        "Painted crosswalk for turtles far inland"
+      ],
+      "category": "Decision-Making Scenarios",
+      "difficulty": "hard",
+      "type": "text"
+    },
+    "68eddb05e496d06d1f48f9a3": {
+      "question": "A man walks 40 m South, turns right 30 m, left 20 m, then left 30 m. How far is he from the start and in which direction?",
+      "options": [
+        "60 m, South",
+        "60 m, North",
+        "70 m, North",
+        "70 m, South"
+      ],
+      "category": "Direction Sense",
+      "difficulty": "hard",
+      "type": "text"
+    },
+    "68edd76be496d06d1f48cd1f": {
+      "question": "Medha\u2019s cousin is Asha. Asha\u2019s father is Ramesh. Who is Ramesh to Medha?",
+      "options": [
+        "Uncle",
+        "Father",
+        "Cousin",
+        "Grandfather"
+      ],
+      "category": "Analytical Reasoning",
+      "difficulty": "easy",
+      "type": "text"
+    },
+    "68edd6e6e496d06d1f48b884": {
+      "question": "Headline: \u201cFederal Agency Warns Against \u2018Greenhushing\u2019 in ESG Reports.\u201d  Greenhushing is when firms:",
+      "options": [
+        "Hide sustainability data to avoid scrutiny",
+        "Overstate eco-goals publicly",
+        "Plant hush-hush trees at night",
+        "Dye grass greener"
+      ],
+      "category": "Civic & Real-Life Reasoning",
+      "difficulty": "hard",
+      "type": "text"
+    },
+    "68edd706e496d06d1f48bd67": {
+      "question": "What data type is MOST likely considered \u201csensitive personal data\u201d under many privacy laws?",
+      "options": [
+        "Biometric face points",
+        "Favorite pizza topping",
+        "Preferred font",
+        "Browser theme"
+      ],
+      "category": "Social Awareness & Perspective",
+      "difficulty": "medium",
+      "type": "text"
+    },
+    "68edda4fe496d06d1f48deb3": {
+      "question": "What comes next? XYZ, WXY, VWX, UVW, ?",
+      "options": [
+        "TUV",
+        "SRQ",
+        "SRP",
+        "RSQ"
+      ],
+      "category": "Pattern Recognition",
+      "difficulty": "medium",
+      "type": "text"
+    },
+    "68edda2fe496d06d1f48d9d5": {
+      "question": "Queue length 50: 15th from right is which from left?",
+      "options": [
+        "36th",
+        "35th",
+        "37th",
+        "34th"
+      ],
+      "category": "Analytical Reasoning",
+      "difficulty": "medium",
+      "type": "text"
+    },
+    "68eddb27e496d06d1f48fecc": {
+      "question": "Why is voting both a right and a duty in a democracy?",
+      "options": [
+        "It\u2019s just tradition",
+        "It\u2019s for adults only",
+        "It affects laws, leadership, and society",
+        "It makes no difference"
+      ],
+      "category": "Social Awareness & Perspective",
+      "difficulty": "medium",
+      "type": "text"
+    },
+    "68edd6bde496d06d1f48b243": {
+      "question": "Which soil is widespread in the Indo-Gangetic plains?",
+      "options": [
+        "Alluvial soil",
+        "Black soil",
+        "Desert soil",
+        "Reddish soil"
+      ],
+      "category": "NCERT-Based Topics",
+      "difficulty": "medium",
+      "type": "text"
+    },
+    "68edd6dce496d06d1f48b707": {
+      "question": "News: \u201cnation approves telemedicine for rural mental-health services.\u201d Key advantage?",
+      "options": [
+        "Remote consultations overcome distance barriers",
+        "Cheaper sports shoes",
+        "Faster pizza delivery",
+        "Wider highways"
+      ],
+      "category": "Civic & Real-Life Reasoning",
+      "difficulty": "medium",
+      "type": "text"
+    },
+    "68edd6c0e496d06d1f48b2c1": {
+      "question": "What is the major source of all energy on Earth?",
+      "options": [
+        "Sun",
+        "Electricity",
+        "Coal",
+        "Wind"
+      ],
+      "category": "NCERT-Based Topics",
+      "difficulty": "medium",
+      "type": "text"
+    },
+    "68edd737e496d06d1f48c518": {
+      "question": "You have enough loose change to tip ONE service worker. Who likely benefits most?",
+      "options": [
+        "Local caf\u00e9 barista who remade wrong order",
+        "Popular influencer livestreaming",
+        "Billionaire street performer",
+        "Robot vending machine"
+      ],
+      "category": "Decision-Making Scenarios",
+      "difficulty": "easy",
+      "type": "text"
+    },
+    "68edda45e496d06d1f48dd1a": {
+      "question": "Find the next: A, C, F, J, ?",
+      "options": [
+        "O",
+        "P",
+        "Q",
+        "R"
+      ],
+      "category": "Pattern Recognition",
+      "difficulty": "easy",
+      "type": "text"
+    },
+    "68eddb2be496d06d1f48ff56": {
+      "question": "A popular campaign wants to ban certain books in the library. What is the most advanced civic approach?",
+      "options": [
+        "Propose review committees with diverse representation to review books",
+        "Support the ban with no discussion",
+        "Call for banning more books",
+        "Ignore the issue"
+      ],
+      "category": "Social Awareness & Perspective",
+      "difficulty": "medium",
+      "type": "text"
+    }
+  }
+}
