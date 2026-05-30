@@ -6,6 +6,7 @@ Commands:
   /status  — today's cache count
   /collect [n]         — run n probes to refresh answer bank (default 50)
   /generate [n] [speed]— generate n perfect anon IDs  (speed 1=<30s, 2=<50s)
+  /verify <id>         — check score of any anon attempt ID via server
 """
 import asyncio
 import os
@@ -24,7 +25,7 @@ from telegram.constants import ParseMode
 
 from genius_1780164377809 import (
     load_cache, save_cache, generate_attempt, validate_answer,
-    run_probe_attempt, QUIZ_KEY, aiohttp, random
+    run_probe_attempt, QUIZ_KEY, BASE_URL, HEADERS, aiohttp, random
 )
 
 TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
@@ -41,6 +42,40 @@ def cache_status():
     count = len(cache.get(QUIZ_KEY, {}))
     return count, QUIZ_KEY
 
+async def verify_attempt(session, anon_id: str, retries: int = 4):
+    """
+    Fetch attempt result from GET /api/attempt/:id.
+    Retries with backoff on 429 rate-limit. Returns None on persistent failure.
+    """
+    for attempt in range(retries):
+        try:
+            async with session.get(
+                f"{BASE_URL}/attempt/{anon_id}",
+                headers=HEADERS,
+                cookies={"anon_attempt_id": anon_id},
+            ) as resp:
+                if resp.status == 429:
+                    await asyncio.sleep(5 * (attempt + 1))
+                    continue
+                data = await resp.json(content_type=None)
+            if not data or not data.get("success"):
+                await asyncio.sleep(3)
+                continue
+            attempted  = data.get("attemptedQuestions", [])
+            total      = data.get("totalQuestions", 15)
+            unanswered = sum(1 for e in attempted if not e.get("selectedOption"))
+            t_total    = data.get("attemptData", {}).get("timeTakenTotal", 0)
+            return {
+                "score":      data.get("score", 0),
+                "total":      total,
+                "correct":    sum(1 for e in attempted if e.get("isCorrect")),
+                "unanswered": unanswered,
+                "time":       round(t_total, 1),
+            }
+        except Exception:
+            await asyncio.sleep(3)
+    return None
+
 async def gap_fill(session, quiz_cache, question_meta, ref_questions):
     """Quickly fill any uncached questions in today's draw."""
     missing = [q for q in ref_questions if q["_id"] not in quiz_cache]
@@ -53,24 +88,30 @@ async def gap_fill(session, quiz_cache, question_meta, ref_questions):
         if not still:
             break
         await run_probe_attempt(session, quiz_cache, question_meta, tried, sem, run)
+    await asyncio.sleep(3)   # cooldown — let server settle before main attempt
     return len([q for q in ref_questions if q["_id"] not in quiz_cache])
 
 async def create_perfect_attempt(session, quiz_cache, lo, hi):
+    """Returns (anon_id, elapsed_s, correct, total) — score confirmed by server."""
     attempt_id, questions, anon_cookie = await generate_attempt(session)
     if not attempt_id:
-        return None, None
+        return None, None, 0, 0
     total_time = 0.0
+    correct    = 0
+    total      = len(questions)
     for i, q in enumerate(questions):
-        is_last = (i == len(questions) - 1)
+        is_last = (i == total - 1)
         answer  = quiz_cache.get(q["_id"]) or q["options"][0]
         t       = round(random.uniform(lo, hi), 2)
         total_time += t
-        await validate_answer(
+        result = await validate_answer(
             session, {}, attempt_id, q, answer, t,
             total_time_used=round(total_time, 2) if is_last else None,
         )
+        if result is True:
+            correct += 1
         await asyncio.sleep(t)
-    return anon_cookie, round(total_time, 1)
+    return anon_cookie, round(total_time, 1), correct, total
 
 # ─── Command handlers ─────────────────────────────────────────────────────────
 
@@ -244,15 +285,29 @@ async def _run_generate(message, n: int, speed: str, editing=False):
 
         while len(anon_ids) < n and tries < max_tries:
             tries += 1
-            aid, elapsed = await create_perfect_attempt(session, quiz_cache, lo, hi)
+            aid, elapsed, _, _ = await create_perfect_attempt(session, quiz_cache, lo, hi)
             if aid:
-                anon_ids.append((aid, elapsed))
-                lines = "\n".join(f"`{a}`  _{e}s_" for a, e in anon_ids)
+                # Verify via API (authoritative server score)
+                await asyncio.sleep(1)
+                v = await verify_attempt(session, aid)
+                if v:
+                    score = f"{v['correct']}/{v['total']}"
+                    icon  = "✅" if v["correct"] == v["total"] else "⚠️"
+                    detail = f"_{elapsed}s_ | server: {score} correct"
+                else:
+                    score  = "?"
+                    icon   = "❓"
+                    detail = f"_{elapsed}s_ | verify failed"
+                anon_ids.append((aid, detail, score, icon))
+                lines = "\n".join(
+                    f"{ic} `{a}`\n   {d}"
+                    for a, d, s, ic in anon_ids
+                )
                 try:
                     await status_msg.edit_text(
-                        f"🎯 *Generating {n} perfect anon ID(s)*\n"
+                        f"🎯 *Generating {n} anon ID(s)*\n"
                         f"{profile['label']}\n\n"
-                        f"✅ {len(anon_ids)}/{n} done\n\n"
+                        f"{len(anon_ids)}/{n} done\n\n"
                         f"{lines}",
                         parse_mode=ParseMode.MARKDOWN
                     )
@@ -266,16 +321,62 @@ async def _run_generate(message, n: int, speed: str, editing=False):
             await status_msg.edit_text("❌ All attempts failed. Check server connectivity.")
             return
 
-        ids_oneliner = " ".join(a for a, _ in anon_ids)
-        lines        = "\n".join(f"`{a}`  _{e}s_" for a, e in anon_ids)
+        all_perfect  = all(s == s.replace(s.split("/")[0], s.split("/")[1], 1)
+                           if "/" in s else False for _, _, s, _ in anon_ids)
+        all_perfect  = all(ic == "✅" for _, _, _, ic in anon_ids)
+        ids_oneliner = " ".join(a for a, _, _, _ in anon_ids)
+        lines        = "\n".join(
+            f"{ic} `{a}`\n   {d}"
+            for a, d, s, ic in anon_ids
+        )
+        header = "All perfect 15/15" if all_perfect else "Check scores below"
 
         await status_msg.edit_text(
-            f"✅ *{len(anon_ids)} perfect anon ID(s) ready!*\n\n"
+            f"🎯 *{len(anon_ids)} anon ID(s) ready* — {header}\n\n"
             f"{lines}\n\n"
-            f"*One-liner to paste into \\[3\\] Manual link:*\n"
+            f"*One-liner for [3] Manual link:*\n"
             f"`{ids_oneliner}`",
             parse_mode=ParseMode.MARKDOWN
         )
+
+async def cmd_verify(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    args = context.args
+    if not args:
+        await update.message.reply_text(
+            "Usage: `/verify <anon_attempt_id>`\n"
+            "Example: `/verify 6a1b357c5dd10f7b6c2edf88`",
+            parse_mode=ParseMode.MARKDOWN
+        )
+        return
+
+    anon_id = args[0].strip()
+    msg = await update.message.reply_text(f"🔍 Verifying `{anon_id}`...", parse_mode=ParseMode.MARKDOWN)
+
+    connector = aiohttp.TCPConnector(limit=10, force_close=False)
+    async with aiohttp.ClientSession(connector=connector) as session:
+        v = await verify_attempt(session, anon_id)
+
+    if not v:
+        await msg.edit_text(
+            f"❌ Could not fetch results for `{anon_id}`\n"
+            f"The ID may be invalid or expired.",
+            parse_mode=ParseMode.MARKDOWN
+        )
+        return
+
+    icon = "✅" if v["correct"] == v["total"] else "⚠️"
+    lines = [
+        f"{icon} *Score: {v['correct']}/{v['total']} correct*",
+        f"⏱ Time: {v['time']}s",
+    ]
+    if v["unanswered"] > 0:
+        lines.append(f"⚠️ Unanswered: {v['unanswered']} (server had empty submissions)")
+
+    await msg.edit_text(
+        f"📊 *Attempt Verification*\n"
+        f"`{anon_id}`\n\n" + "\n".join(lines),
+        parse_mode=ParseMode.MARKDOWN
+    )
 
 # ─── Main ─────────────────────────────────────────────────────────────────────
 
@@ -286,6 +387,7 @@ def main():
     app.add_handler(CommandHandler("status",   cmd_status))
     app.add_handler(CommandHandler("collect",  cmd_collect))
     app.add_handler(CommandHandler("generate", cmd_generate))
+    app.add_handler(CommandHandler("verify",   cmd_verify))
     app.add_handler(CallbackQueryHandler(callback_generate, pattern=r"^gen:"))
     print("Bot started — polling...")
     app.run_polling(drop_pending_updates=True)
