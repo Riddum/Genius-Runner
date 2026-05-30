@@ -48,23 +48,26 @@ def save_cache(cache):
 async def generate_attempt(session, cookies=None):
     """Create a new anonymous attempt (no auth cookies required).
     Returns (attempt_id, questions, anon_cookie_value)."""
-    async with session.post(
-        f"{BASE_URL}/attempt/generate",
-        headers=HEADERS,
-        cookies=cookies or {},
-        json={},
-    ) as resp:
-        anon_cookie = None
-        for morsel in resp.cookies.values():
-            if morsel.key == "anon_attempt_id":
-                anon_cookie = morsel.value
-                break
-        data = await resp.json(content_type=None)
-        if not data.get("success") or not data.get("data"):
-            return None, None, None
-        quiz    = data["data"]["quiz"]
-        attempt = data["data"]["attempt"]
-        return attempt["_id"], quiz["Questions"], anon_cookie
+    try:
+        async with session.post(
+            f"{BASE_URL}/attempt/generate",
+            headers=HEADERS,
+            cookies=cookies or {},
+            json={},
+        ) as resp:
+            anon_cookie = None
+            for morsel in resp.cookies.values():
+                if morsel.key == "anon_attempt_id":
+                    anon_cookie = morsel.value
+                    break
+            data = await resp.json(content_type=None)
+            if not data or not data.get("success") or not data.get("data"):
+                return None, None, None
+            quiz    = data["data"]["quiz"]
+            attempt = data["data"]["attempt"]
+            return attempt["_id"], quiz["Questions"], anon_cookie
+    except Exception:
+        return None, None, None
 
 async def validate_answer(session, cookies, attempt_id, question,
                           selected_answer, time_spent, total_time_used=None):
@@ -78,18 +81,23 @@ async def validate_answer(session, cookies, attempt_id, question,
     }
     if total_time_used is not None:
         payload["totalTimeUsed"] = total_time_used
-    async with session.post(
-        f"{BASE_URL}/attempt/validate",
-        headers=HEADERS,
-        cookies=cookies,
-        json=payload,
-    ) as resp:
-        data = await resp.json(content_type=None)
-        if data.get("duplicateSubmission"):
-            return None
-        for entry in data.get("data", {}).get("QuestionsAttempted", []):
-            if entry.get("questionId") == question["_id"]:
-                return entry.get("isCorrect", False)
+    try:
+        async with session.post(
+            f"{BASE_URL}/attempt/validate",
+            headers=HEADERS,
+            cookies=cookies,
+            json=payload,
+        ) as resp:
+            data = await resp.json(content_type=None)
+            if not data:
+                return False
+            if data.get("duplicateSubmission"):
+                return None
+            for entry in data.get("data", {}).get("QuestionsAttempted", []):
+                if entry.get("questionId") == question["_id"]:
+                    return entry.get("isCorrect", False)
+            return False
+    except Exception:
         return False
 
 # ─── Stats helpers ────────────────────────────────────────────────────────────
@@ -329,26 +337,30 @@ async def send_link_request(session, cookies, anon_id, req_id):
 
 async def main():
     print("=== India Genius Challenge Bot ===\n")
-    print("  [1] Collect answers  (run many probes to build the answer bank)")
-    print("  [2] Auto-play & link (use cached answers, create perfect attempts)")
-    print("  [3] Manual link      (paste your own anon IDs)")
+    cache      = load_cache()
+    quiz_cache = cache.get(QUIZ_KEY, {})
+    print(f"  Answer bank today: {len(quiz_cache)} questions cached  (quiz key: {QUIZ_KEY})\n")
+    print("  [1] Refresh answer bank  — re-run probes, update correct_answers_today.json")
+    print("  [2] Auto-play & link     — create perfect attempts + link to your account")
+    print("  [3] Manual link          — paste your own anon IDs and link")
     mode = input("\nChoice (1 / 2 / 3): ").strip()
 
-    connector = aiohttp.TCPConnector(limit=0)
+    connector = aiohttp.TCPConnector(limit=100, force_close=False, enable_cleanup_closed=True)
     async with aiohttp.ClientSession(connector=connector) as session:
 
-        # ── MODE 1: Collect answers ───────────────────────────────────────────
+        # ── MODE 1: Refresh / collect answers ────────────────────────────────
         if mode == "1":
-            raw = input("How many probe attempts to run? (default 30): ").strip()
+            print(f"\n  Currently {len(quiz_cache)} answers cached for today.")
+            raw = input("  How many probe attempts to run? (default 30): ").strip()
             num_runs = int(raw) if raw.isdigit() else 30
-            raw = input("Concurrency (default 5, max 10): ").strip()
-            concurrency = min(10, int(raw) if raw.isdigit() else 5)
+            raw = input("  Concurrency (default 4, max 8): ").strip()
+            concurrency = min(8, int(raw) if raw.isdigit() else 4)
 
             quiz_cache, question_meta = await collect_answers(session, num_runs, concurrency)
 
-            print("\nExporting readable answers file...")
+            print("\n  Exporting updated answers file...")
             out = await export_answers_file(session, quiz_cache, question_meta)
-            print(f"\n  Done! Open '{out}' to see all correct answers.")
+            print(f"  ✅ Done! {len(quiz_cache)} answers saved to '{out}'")
             return
 
         # ── MODES 2 & 3: Need user cookies ───────────────────────────────────
