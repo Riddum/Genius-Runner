@@ -546,10 +546,14 @@ def main():
     print("✅ Bot initialized successfully")
     print("🚀 Bot started — polling...")
     
-    # Application.run_polling() manages its own event loop internally.
-    # Do NOT wrap with asyncio.run() or await it.
-    # Just call it as a normal function.
-    app.run_polling(drop_pending_updates=True)
+    # Python 3.14+ requires explicit event loop setup for asyncio.get_event_loop()
+    # Create a new event loop and set it as current before calling run_polling()
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        app.run_polling(drop_pending_updates=True)
+    finally:
+        loop.close()
 
 if __name__ == "__main__":
     main()
