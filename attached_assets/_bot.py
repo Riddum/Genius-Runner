@@ -2,11 +2,14 @@
 Telegram bot interface for the India Genius Challenge automation.
 
 Commands:
-  /start   — show help
-  /status  — today's cache count
-  /collect [n]         — run n probes to refresh answer bank (default 50)
-  /generate [n] [speed]— generate n perfect anon IDs  (speed 1=<30s, 2=<50s)
-  /verify <id>         — check score of any anon attempt ID via server
+  /start                   — show help
+  /status                  — today's cache count
+  /collect [n]             — run n probes to refresh answer bank (default 50)
+  /generate [n] [speed]    — generate n perfect anon IDs  (speed 1=<30s, 2=<50s)
+  /verify <id>             — check score of any anon attempt ID via server
+  /link <nick> <id1> [id2] [id3]
+                           — fire up to 3 link requests to a saved account cookie,
+                             record ELO + challenges before and after
 """
 import asyncio
 import os
@@ -24,10 +27,32 @@ from telegram.ext import (
 from telegram.constants import ParseMode
 
 from genius_1780164377809 import (
-    load_cache, save_cache, generate_attempt, validate_answer,
+    load_cache, save_cache, load_cookies, fetch_stats, send_link_request,
+    generate_attempt, validate_answer,
     run_probe_attempt, collect_answers, merged_quiz_cache,
     QUIZ_KEY, BASE_URL, HEADERS, aiohttp, random
 )
+
+EXCLUDE_JSON = {"answers_cache.json", "correct_answers_today.json"}
+
+def find_cookie_file(nickname: str):
+    """Return filepath for a nickname's cookie file, or None if not found."""
+    candidate = f"{nickname}.json"
+    if os.path.exists(candidate) and candidate not in EXCLUDE_JSON:
+        return candidate
+    # Case-insensitive fallback
+    for fname in os.listdir("."):
+        if fname.endswith(".json") and fname not in EXCLUDE_JSON:
+            if fname[:-5].lower() == nickname.lower():
+                return fname
+    return None
+
+def list_cookie_files():
+    """Return list of saved nickname strings."""
+    return [
+        f[:-5] for f in sorted(os.listdir("."))
+        if f.endswith(".json") and f not in EXCLUDE_JSON
+    ]
 
 TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 
@@ -111,9 +136,12 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"`/status` — show cache count\n"
         f"`/collect [n]` — refresh answer bank (default 50 probes)\n"
         f"`/generate [n] [speed]` — create perfect anon IDs\n"
-        f"  • speed `1` = under 30s (default)\n"
-        f"  • speed `2` = under 50s\n\n"
-        f"_Example:_ `/generate 5 1`",
+        f"  • speed `1` = under 30s (default)  • speed `2` = under 50s\n"
+        f"`/verify <id>` — check server score of an anon ID\n"
+        f"`/link <nick> <id1> [id2] [id3]` — fire link requests to saved account, show ELO before/after\n\n"
+        f"_Examples:_\n"
+        f"`/generate 5 1`\n"
+        f"`/link myaccount 6a1b... 6a1b... 6a1b...`",
         parse_mode=ParseMode.MARKDOWN
     )
 
@@ -367,6 +395,115 @@ async def cmd_verify(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode=ParseMode.MARKDOWN
     )
 
+async def cmd_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """
+    /link <nickname> <id1> [id2] [id3]
+    Fire up to 3 link requests to the saved cookie for <nickname>,
+    recording ELO + challenges played before and after.
+    """
+    args = context.args or []
+    if len(args) < 2:
+        saved = list_cookie_files()
+        saved_txt = ", ".join(f"`{n}`" for n in saved) if saved else "_none saved_"
+        await update.message.reply_text(
+            "*Usage:* `/link <nickname> <id1> [id2] [id3]`\n\n"
+            f"Saved accounts: {saved_txt}\n\n"
+            "_Example:_ `/link myaccount 6a1b... 6a1b...`",
+            parse_mode=ParseMode.MARKDOWN
+        )
+        return
+
+    nickname = args[0]
+    anon_ids = args[1:4]          # max 3
+
+    filepath = find_cookie_file(nickname)
+    if not filepath:
+        saved = list_cookie_files()
+        saved_txt = ", ".join(f"`{n}`" for n in saved) if saved else "_none_"
+        await update.message.reply_text(
+            f"❌ No cookie file found for `{nickname}`\n\n"
+            f"Saved accounts: {saved_txt}",
+            parse_mode=ParseMode.MARKDOWN
+        )
+        return
+
+    ids_display = "\n".join(f"  • `{a}`" for a in anon_ids)
+    msg = await update.message.reply_text(
+        f"🔗 *Linking {len(anon_ids)} ID(s)* to `{nickname}`\n\n"
+        f"{ids_display}\n\n"
+        f"⏳ Fetching stats before...",
+        parse_mode=ParseMode.MARKDOWN
+    )
+
+    try:
+        cookies = load_cookies(filepath)
+    except Exception as e:
+        await msg.edit_text(f"❌ Failed to load cookies for `{nickname}`: {e}",
+                            parse_mode=ParseMode.MARKDOWN)
+        return
+
+    connector = aiohttp.TCPConnector(limit=20, force_close=False)
+    async with aiohttp.ClientSession(connector=connector) as session:
+
+        # ── Stats BEFORE ─────────────────────────────────────────────────────
+        elo_b, played_b = await fetch_stats(session, cookies)
+
+        def fmt(v):
+            return str(v) if v is not None else "—"
+
+        await msg.edit_text(
+            f"🔗 *Linking {len(anon_ids)} ID(s)* to `{nickname}`\n\n"
+            f"{ids_display}\n\n"
+            f"📊 *Before:* ELO `{fmt(elo_b)}` | Played `{fmt(played_b)}`\n\n"
+            f"🚀 Firing requests...",
+            parse_mode=ParseMode.MARKDOWN
+        )
+
+        # ── Fire all simultaneously ───────────────────────────────────────────
+        t0 = time.perf_counter()
+        results = await asyncio.gather(*[
+            send_link_request(session, cookies, anon_id, i + 1)
+            for i, anon_id in enumerate(anon_ids)
+        ])
+        elapsed = time.perf_counter() - t0
+
+        status_icons = []
+        for st in results:
+            status_icons.append("✅" if st == 200 else f"⚠️{st}")
+
+        await msg.edit_text(
+            f"🔗 *Linking {len(anon_ids)} ID(s)* to `{nickname}`\n\n"
+            f"{ids_display}\n\n"
+            f"📊 *Before:* ELO `{fmt(elo_b)}` | Played `{fmt(played_b)}`\n"
+            f"📡 Requests: {' '.join(status_icons)} in `{elapsed:.2f}s`\n\n"
+            f"⏳ Waiting for server...",
+            parse_mode=ParseMode.MARKDOWN
+        )
+
+        # ── Stats AFTER ──────────────────────────────────────────────────────
+        await asyncio.sleep(2)
+        elo_a, played_a = await fetch_stats(session, cookies)
+
+        # Build delta strings
+        def delta(b, a):
+            if b is None or a is None:
+                return fmt(a)
+            d = a - b
+            return f"{fmt(b)} → {fmt(a)}  (`{'+'if d>=0 else ''}{d}`)"
+
+        all_ok = all(s == 200 for s in results)
+        header = "✅ All linked!" if all_ok else f"⚠️ {sum(1 for s in results if s!=200)} request(s) non-200"
+
+        await msg.edit_text(
+            f"🔗 *Link complete* — {header}\n\n"
+            f"{ids_display}\n\n"
+            f"📊 *ELO:* {delta(elo_b, elo_a)}\n"
+            f"🏆 *Challenges played:* {delta(played_b, played_a)}\n\n"
+            f"📡 Statuses: {' '.join(status_icons)} in `{elapsed:.2f}s`",
+            parse_mode=ParseMode.MARKDOWN
+        )
+
+
 # ─── Main ─────────────────────────────────────────────────────────────────────
 
 def main():
@@ -377,6 +514,7 @@ def main():
     app.add_handler(CommandHandler("collect",  cmd_collect))
     app.add_handler(CommandHandler("generate", cmd_generate))
     app.add_handler(CommandHandler("verify",   cmd_verify))
+    app.add_handler(CommandHandler("link",     cmd_link))
     app.add_handler(CallbackQueryHandler(callback_generate, pattern=r"^gen:"))
     print("Bot started — polling...")
     app.run_polling(drop_pending_updates=True)
