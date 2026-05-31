@@ -20,18 +20,28 @@ import time
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import (
-    Application, CommandHandler, CallbackQueryHandler, ContextTypes
-)
-from telegram.constants import ParseMode
+try:
+    from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+    from telegram.ext import (
+        Application, CommandHandler, CallbackQueryHandler, ContextTypes
+    )
+    from telegram.constants import ParseMode
+except Exception as e:
+    print(f"ERROR: Failed to import telegram modules: {e}")
+    sys.exit(1)
 
-from genius_1780164377809 import (
-    load_cache, save_cache, load_cookies, fetch_stats, send_link_request,
-    generate_attempt, validate_answer,
-    run_probe_attempt, collect_answers, merged_quiz_cache,
-    QUIZ_KEY, BASE_URL, HEADERS, aiohttp, random
-)
+try:
+    from genius_1780164377809 import (
+        load_cache, save_cache, load_cookies, fetch_stats, send_link_request,
+        generate_attempt, validate_answer,
+        run_probe_attempt, collect_answers, merged_quiz_cache,
+        QUIZ_KEY, BASE_URL, HEADERS, aiohttp, random
+    )
+except Exception as e:
+    print(f"ERROR: Failed to import genius_1780164377809: {e}")
+    print(f"Current directory: {os.getcwd()}")
+    print(f"Files in current directory: {os.listdir('.')}")
+    sys.exit(1)
 
 EXCLUDE_JSON = {"answers_cache.json", "correct_answers_today.json"}
 
@@ -41,20 +51,31 @@ def find_cookie_file(nickname: str):
     if os.path.exists(candidate) and candidate not in EXCLUDE_JSON:
         return candidate
     # Case-insensitive fallback
-    for fname in os.listdir("."):
-        if fname.endswith(".json") and fname not in EXCLUDE_JSON:
-            if fname[:-5].lower() == nickname.lower():
-                return fname
+    try:
+        for fname in os.listdir("."):
+            if fname.endswith(".json") and fname not in EXCLUDE_JSON:
+                if fname[:-5].lower() == nickname.lower():
+                    return fname
+    except Exception:
+        pass
     return None
 
 def list_cookie_files():
     """Return list of saved nickname strings."""
-    return [
-        f[:-5] for f in sorted(os.listdir("."))
-        if f.endswith(".json") and f not in EXCLUDE_JSON
-    ]
+    try:
+        return [
+            f[:-5] for f in sorted(os.listdir("."))
+            if f.endswith(".json") and f not in EXCLUDE_JSON
+        ]
+    except Exception:
+        return []
 
-TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
+# Get token from environment variable - handle missing gracefully
+TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
+if not TOKEN:
+    print("ERROR: TELEGRAM_BOT_TOKEN environment variable not set!")
+    print("Please set TELEGRAM_BOT_TOKEN in your Render environment variables.")
+    sys.exit(1)
 
 SPEED_PROFILES = {
     "1": {"label": "⚡ Under 30s (~22s avg)", "lo": 0.8,  "hi": 1.5},
@@ -64,9 +85,13 @@ SPEED_PROFILES = {
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 
 def cache_status():
-    cache = load_cache()
-    count = len(cache.get(QUIZ_KEY, {}))
-    return count, QUIZ_KEY
+    try:
+        cache = load_cache()
+        count = len(cache.get(QUIZ_KEY, {}))
+        return count, QUIZ_KEY
+    except Exception as e:
+        print(f"Cache load error: {e}")
+        return 0, QUIZ_KEY
 
 async def verify_attempt(session, anon_id: str, retries: int = 4):
     """
@@ -125,7 +150,7 @@ async def create_perfect_attempt(session, quiz_cache, lo, hi):
         await asyncio.sleep(t)
     return anon_cookie, round(total_time, 1), correct, total
 
-# ─── Command handlers ─────────────────────────────────────────────────────────
+# ─── Command handlers ───────────────────────────────────────────────────────
 
 async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     count, key = cache_status()
@@ -338,8 +363,6 @@ async def _run_generate(message, n: int, speed: str, editing=False):
             await status_msg.edit_text("❌ All attempts failed. Check server connectivity.")
             return
 
-        all_perfect  = all(s == s.replace(s.split("/")[0], s.split("/")[1], 1)
-                           if "/" in s else False for _, _, s, _ in anon_ids)
         all_perfect  = all(ic == "✅" for _, _, _, ic in anon_ids)
         ids_oneliner = " ".join(a for a, _, _, _ in anon_ids)
         lines        = "\n".join(
@@ -504,9 +527,12 @@ async def cmd_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
-# ─── Main ─────────────────────────────────────────────────────────────────────
+# ─── Main ───────────────────────────────────────────────────────────────────
 
 def main():
+    print("Initializing Telegram bot...")
+    print(f"Token: {TOKEN[:20]}...")
+    
     app = Application.builder().token(TOKEN).build()
     app.add_handler(CommandHandler("start",    cmd_start))
     app.add_handler(CommandHandler("help",     cmd_start))
@@ -516,7 +542,8 @@ def main():
     app.add_handler(CommandHandler("verify",   cmd_verify))
     app.add_handler(CommandHandler("link",     cmd_link))
     app.add_handler(CallbackQueryHandler(callback_generate, pattern=r"^gen:"))
-    print("Bot started — polling...")
+    print("✅ Bot initialized successfully")
+    print("🚀 Bot started — polling...")
     app.run_polling(drop_pending_updates=True)
 
 if __name__ == "__main__":
