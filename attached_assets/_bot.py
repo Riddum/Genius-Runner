@@ -527,10 +527,10 @@ async def cmd_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
-# ─── Main ──────────────────────────────────────────���───────────────────────────
+# ─── Main ──────────────────────────────────────────────────────────────────────
 
-async def main():
-    """Async main function to run the bot."""
+def main():
+    """Main entry point - runs the bot."""
     print("Initializing Telegram bot...")
     print(f"Token: {TOKEN[:20]}...")
     
@@ -546,12 +546,10 @@ async def main():
     print("✅ Bot initialized successfully")
     print("🚀 Bot started — polling...")
     
-    # For Python 3.14+, we need to await run_polling() inside an async context
-    await app.run_polling(drop_pending_updates=True)
+    # Application.run_polling() manages its own event loop internally.
+    # Do NOT wrap with asyncio.run() or await it.
+    # Just call it as a normal function.
+    app.run_polling(drop_pending_updates=True)
 
 if __name__ == "__main__":
-    # Python 3.14+ requires explicit event loop creation via asyncio.run()
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        print("\n✅ Bot stopped.")
+    main()
