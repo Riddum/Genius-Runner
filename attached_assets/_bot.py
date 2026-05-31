@@ -527,7 +527,7 @@ async def cmd_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
-# ─── Main ───────────────────────────────────────────────────────────────────
+# ─── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
     print("Initializing Telegram bot...")
@@ -544,7 +544,9 @@ def main():
     app.add_handler(CallbackQueryHandler(callback_generate, pattern=r"^gen:"))
     print("✅ Bot initialized successfully")
     print("🚀 Bot started — polling...")
-    app.run_polling(drop_pending_updates=True)
+    
+    # Use asyncio.run() to properly set up event loop for v22.3+
+    asyncio.run(app.run_polling(drop_pending_updates=True))
 
 if __name__ == "__main__":
     main()
