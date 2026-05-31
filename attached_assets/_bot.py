@@ -545,8 +545,9 @@ def main():
     print("✅ Bot initialized successfully")
     print("🚀 Bot started — polling...")
     
-    # Use asyncio.run() to properly set up event loop for v22.3+
-    asyncio.run(app.run_polling(drop_pending_updates=True))
+    # For python-telegram-bot v22.3+, call run_polling() directly (NOT wrapped in asyncio.run())
+    # run_polling() manages its own event loop internally
+    app.run_polling(drop_pending_updates=True)
 
 if __name__ == "__main__":
     main()
