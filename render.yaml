@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: genius-runner
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python bot.py
+    envVars:
+      - key: TELEGRAM_TOKEN
+        sync: false   # You will set this manually in Render dashboard
+      - key: WEBHOOK_URL
+        sync: false   # Will be your Render service URL + '/webhook'
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 1
