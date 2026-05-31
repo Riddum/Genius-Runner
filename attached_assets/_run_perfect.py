@@ -3,7 +3,7 @@ import asyncio, sys, os
 sys.path.insert(0, os.path.dirname(__file__))
 from genius_1780164377809 import (
     load_cache, generate_attempt, validate_answer,
-    run_probe_attempt, QUIZ_KEY, BASE_URL, HEADERS,
+    QUIZ_KEY, BASE_URL, HEADERS,
     aiohttp, random
 )
 
@@ -75,10 +75,26 @@ async def create_perfect_attempt(session, quiz_cache, lo, hi):
     return anon_cookie, round(total_time, 1), correct, total
 
 
+def merged_cache(cache: dict) -> dict:
+    """
+    Merge all daily_* entries across every day into one lookup table.
+    Today's answers take priority; older days fill in any gaps.
+    Question IDs are stable across days — the server reuses the same pool.
+    """
+    merged = {}
+    # Layer older days first (they'll be overwritten by newer data)
+    for key in sorted(k for k in cache if k.startswith("daily_") and k != QUIZ_KEY):
+        if isinstance(cache[key], dict):
+            merged.update(cache[key])
+    # Today's verified answers on top
+    merged.update(cache.get(QUIZ_KEY, {}))
+    return merged
+
+
 async def main():
     print("=== Perfect Anon Attempt Generator ===\n")
-    cache      = load_cache()
-    quiz_cache = cache.get(QUIZ_KEY, {})
+    cache         = load_cache()
+    quiz_cache    = merged_cache(cache)          # cross-day merge
     question_meta = cache.get("question_meta", {})
 
     if not quiz_cache:
@@ -103,35 +119,32 @@ async def main():
     connector = aiohttp.TCPConnector(limit=100, force_close=False, enable_cleanup_closed=True)
     async with aiohttp.ClientSession(connector=connector) as session:
 
-        # ── Quick gap-fill if today's draw has uncached questions ─────────────
+        # ── Check cache coverage for today's draw ────────────────────────────
         _, ref_questions, _ = await generate_attempt(session)
         if not ref_questions:
             print("  ❌  Could not reach the quiz server.")
             return
 
-        missing = [q for q in ref_questions if q["_id"] not in quiz_cache]
-        if missing:
-            print(f"  ⚠️  {len(missing)} question(s) not in cache — running quick gap-fill probes...")
-            tried = {}
-            sem   = asyncio.Semaphore(3)
-            for run in range(8):
-                still = [q for q in ref_questions if q["_id"] not in quiz_cache]
-                if not still:
-                    break
-                await run_probe_attempt(session, quiz_cache, question_meta, tried, sem, run)
-            remaining = [q for q in ref_questions if q["_id"] not in quiz_cache]
-            if remaining:
-                print(f"  ⚠️  {len(remaining)} still uncached — those will use first option as fallback.")
-            else:
-                print(f"  ✅  All questions covered.")
-            print("  ⏳ Cooling down 4s after probes...\n")
-            await asyncio.sleep(4)   # let server settle before scored attempts
+        uncached = [q for q in ref_questions if q["_id"] not in quiz_cache]
+        if uncached:
+            print(f"\n  ⚠️  {len(uncached)}/{len(ref_questions)} question(s) NOT in cache:")
+            for q in uncached:
+                label = (q.get("question") or "[image question]")[:70]
+                print(f"       • {label}")
+            print(f"\n  These will use the FIRST option as fallback (likely wrong).")
+            print(f"  For guaranteed 15/15 → run 'python3 genius_1780164377809.py'")
+            print(f"  then choose [1] Refresh answer bank first.\n")
+            ans = input("  Continue anyway? (y = use fallback for uncached, n = cancel): ").strip().lower()
+            if ans != "y":
+                print("  Cancelled. Collect more answers first then re-run.")
+                return
+        else:
+            print(f"  ✅  All {len(ref_questions)} questions cached — generating clean 15/15 attempts.\n")
 
         # ── Create attempts ───────────────────────────────────────────────────
-        anon_ids    = []
-        tries       = 0
-        max_tries   = target * 4
-        did_gapfill = bool(missing)   # remember if probes ran this session
+        anon_ids  = []
+        tries     = 0
+        max_tries = target * 4
 
         while len(anon_ids) < target and tries < max_tries:
             tries += 1
@@ -139,22 +152,16 @@ async def main():
             print(f"  [{num}/{target}] Playing quiz...")
             aid, elapsed, _, _ = await create_perfect_attempt(session, quiz_cache, lo, hi)
             if aid:
-                if did_gapfill:
-                    # Server rate-limits verify after gap-fill probes — skip inline,
-                    # use /verify <id> on the Telegram bot or _verify.py later.
-                    anon_ids.append((aid, elapsed, "—"))
-                    print(f"         ✅  {aid}  ({elapsed}s)  (verify later — see note)\n")
+                await asyncio.sleep(2)
+                v = await verify_attempt(session, aid)
+                if v:
+                    score = f"{v['correct']}/{v['total']}"
+                    flag  = "✅" if v["correct"] == v["total"] else "⚠️"
+                    note  = "" if v["unanswered"] == 0 else f"  ({v['unanswered']} unanswered)"
                 else:
-                    await asyncio.sleep(2)
-                    v = await verify_attempt(session, aid)
-                    if v:
-                        score = f"{v['correct']}/{v['total']}"
-                        flag  = "✅" if v["correct"] == v["total"] else "⚠️"
-                        note  = "" if v["unanswered"] == 0 else f"  ({v['unanswered']} unanswered)"
-                    else:
-                        score, flag, note = "?", "❓", "  (verify failed — try /verify later)"
-                    anon_ids.append((aid, elapsed, score))
-                    print(f"         {flag}  {aid}  ({elapsed}s)  server: {score} correct{note}\n")
+                    score, flag, note = "?", "❓", "  (verify later with /verify or _verify.py)"
+                anon_ids.append((aid, elapsed, score))
+                print(f"         {flag}  {aid}  ({elapsed}s)  server: {score} correct{note}\n")
             else:
                 print(f"         ⚠️  Connection hiccup, retrying in 2s...\n")
                 await asyncio.sleep(2)
@@ -178,10 +185,7 @@ async def main():
             print(f"    {aid}  ({elapsed}s)  {mark} {label}")
         print(f"\n  Paste all of these into main script → [3] Manual link")
         print(f"  (space-separated on one line is fine)\n")
-        if did_gapfill:
-            print(f"  ⚠️  Gap-fill probes ran — verify score after 5+ mins:")
-            print(f"  Telegram: /verify <id>   or   python3 _verify.py <id>")
-        print(f"\n  One-liner to copy:")
+        print(f"  One-liner to copy:")
         print(f"  {' '.join(a for a, _, _ in anon_ids)}")
         print(sep)
 

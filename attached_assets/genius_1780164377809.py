@@ -70,35 +70,48 @@ async def generate_attempt(session, cookies=None):
         return None, None, None
 
 async def validate_answer(session, cookies, attempt_id, question,
-                          selected_answer, time_spent, total_time_used=None):
-    """Submit one answer. Returns isCorrect (True/False) or None if duplicate."""
+                          selected_answer, time_spent, total_time_used=None,
+                          retries=3):
+    """
+    Submit one answer.
+    Returns True (correct), False (wrong), or None (duplicate submission).
+    Retries up to `retries` times on 429 or transient errors with backoff.
+    """
     payload = {
         "_id":            attempt_id,
         "questionId":     question["_id"],
-        "question":       question["question"],
+        "question":       question.get("question") or "",   # image questions have null here
         "selectedAnswer": selected_answer,
         "timeSpent":      time_spent,
     }
     if total_time_used is not None:
         payload["totalTimeUsed"] = total_time_used
-    try:
-        async with session.post(
-            f"{BASE_URL}/attempt/validate",
-            headers=HEADERS,
-            cookies=cookies,
-            json=payload,
-        ) as resp:
-            data = await resp.json(content_type=None)
+
+    for attempt_num in range(retries):
+        try:
+            async with session.post(
+                f"{BASE_URL}/attempt/validate",
+                headers=HEADERS,
+                cookies=cookies,
+                json=payload,
+            ) as resp:
+                if resp.status == 429:
+                    wait = 3 * (attempt_num + 1)   # 3s, 6s, 9s
+                    await asyncio.sleep(wait)
+                    continue
+                data = await resp.json(content_type=None)
             if not data:
-                return False
+                await asyncio.sleep(2)
+                continue
             if data.get("duplicateSubmission"):
                 return None
             for entry in data.get("data", {}).get("QuestionsAttempted", []):
                 if entry.get("questionId") == question["_id"]:
                     return entry.get("isCorrect", False)
             return False
-    except Exception:
-        return False
+        except Exception:
+            await asyncio.sleep(2)
+    return False
 
 # ─── Stats helpers ────────────────────────────────────────────────────────────
 
@@ -204,6 +217,20 @@ async def run_probe_attempt(session, quiz_cache, question_meta, tried_options, s
 
 # ─── Collection mode ──────────────────────────────────────────────────────────
 
+def merged_quiz_cache(cache: dict) -> dict:
+    """
+    Merge all daily_* answer dicts across every day so question IDs found on
+    any previous day are available today (IDs are stable in the server's pool).
+    Today's answers take priority; older days fill in the gaps.
+    """
+    merged = {}
+    for key in sorted(k for k in cache if k.startswith("daily_") and k != QUIZ_KEY):
+        if isinstance(cache[key], dict):
+            merged.update(cache[key])
+    merged.update(cache.get(QUIZ_KEY, {}))
+    return merged
+
+
 async def collect_answers(session, num_runs=30, concurrency=5):
     """
     Run `num_runs` probe attempts (max `concurrency` at a time) to discover
@@ -211,7 +238,7 @@ async def collect_answers(session, num_runs=30, concurrency=5):
     Returns (quiz_cache, question_meta) dicts.
     """
     cache         = load_cache()
-    quiz_cache    = dict(cache.get(QUIZ_KEY, {}))
+    quiz_cache    = merged_quiz_cache(cache)        # cross-day merge
     question_meta = dict(cache.get("question_meta", {}))
     tried_options = {}   # {question_id: set of tried option indices}
     sem           = asyncio.Semaphore(concurrency)
@@ -394,7 +421,7 @@ async def main():
             count = max(1, min(3, int(raw) if raw.isdigit() else 1))
 
             cache      = load_cache()
-            quiz_cache = dict(cache.get(QUIZ_KEY, {}))
+            quiz_cache = merged_quiz_cache(cache)   # cross-day merge for best coverage
 
             print("\n📚 Fetching today's questions...")
             _, ref_questions, _ = await generate_attempt(session)

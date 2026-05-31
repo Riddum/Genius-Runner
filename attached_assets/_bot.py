@@ -25,7 +25,8 @@ from telegram.constants import ParseMode
 
 from genius_1780164377809 import (
     load_cache, save_cache, generate_attempt, validate_answer,
-    run_probe_attempt, QUIZ_KEY, BASE_URL, HEADERS, aiohttp, random
+    run_probe_attempt, collect_answers, merged_quiz_cache,
+    QUIZ_KEY, BASE_URL, HEADERS, aiohttp, random
 )
 
 TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
@@ -76,20 +77,6 @@ async def verify_attempt(session, anon_id: str, retries: int = 4):
             await asyncio.sleep(3)
     return None
 
-async def gap_fill(session, quiz_cache, question_meta, ref_questions):
-    """Quickly fill any uncached questions in today's draw."""
-    missing = [q for q in ref_questions if q["_id"] not in quiz_cache]
-    if not missing:
-        return 0
-    tried = {}
-    sem   = asyncio.Semaphore(3)
-    for run in range(8):
-        still = [q for q in ref_questions if q["_id"] not in quiz_cache]
-        if not still:
-            break
-        await run_probe_attempt(session, quiz_cache, question_meta, tried, sem, run)
-    await asyncio.sleep(3)   # cooldown — let server settle before main attempt
-    return len([q for q in ref_questions if q["_id"] not in quiz_cache])
 
 async def create_perfect_attempt(session, quiz_cache, lo, hi):
     """Returns (anon_id, elapsed_s, correct, total) — score confirmed by server."""
@@ -156,7 +143,7 @@ async def cmd_collect(update: Update, context: ContextTypes.DEFAULT_TYPE):
     connector = aiohttp.TCPConnector(limit=100, force_close=False, enable_cleanup_closed=True)
     async with aiohttp.ClientSession(connector=connector) as session:
         cache         = load_cache()
-        quiz_cache    = dict(cache.get(QUIZ_KEY, {}))
+        quiz_cache    = merged_quiz_cache(cache)    # cross-day merge
         question_meta = dict(cache.get("question_meta", {}))
         tried_options = {}
         sem           = asyncio.Semaphore(4)
@@ -263,18 +250,20 @@ async def _run_generate(message, n: int, speed: str, editing=False):
     connector = aiohttp.TCPConnector(limit=100, force_close=False, enable_cleanup_closed=True)
     async with aiohttp.ClientSession(connector=connector) as session:
         cache         = load_cache()
-        quiz_cache    = dict(cache.get(QUIZ_KEY, {}))
+        quiz_cache    = merged_quiz_cache(cache)    # cross-day merge
         question_meta = dict(cache.get("question_meta", {}))
 
-        # Gap fill if needed
+        # Check cache coverage — no gap-fill (gap-fill before generation causes rate-limiting)
         _, ref_questions, _ = await generate_attempt(session)
+        uncached_count = 0
         if ref_questions:
-            missing = await gap_fill(session, quiz_cache, question_meta, ref_questions)
-            if missing:
+            uncached_count = sum(1 for q in ref_questions if q["_id"] not in quiz_cache)
+            if uncached_count:
                 await status_msg.edit_text(
                     f"🎯 *Generating {n} perfect anon ID(s)*\n"
                     f"{profile['label']}\n\n"
-                    f"⚠️ {missing} question(s) still uncached (will use first option)\n"
+                    f"⚠️ *{uncached_count}/15 questions not in cache* — will use first option (may be wrong)\n"
+                    f"💡 Run `/collect 200` first for guaranteed 15/15\n\n"
                     f"⏳ 0/{n} done...",
                     parse_mode=ParseMode.MARKDOWN
                 )
